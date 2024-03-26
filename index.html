@@ -99,6 +99,43 @@
     })()
   </script>
 
+<script>
+  // 代理模式, 以下演示的是缓存代理
+  (function() {
+    // 一个功能函数,返回所有参数的乘值
+    function multiply(){
+      if(!arguments.length) return
+      let result = arguments[0]
+      for(let i = 1; i < arguments.length; i++) {
+        result = result * arguments[i]
+      }
+      return result
+    }
+
+    // 代理, 对上述的方法进行值缓存
+    const cacheProxyMultiply = (function () {
+      const cache = {}
+      return function() {
+        const cacheKey = Array.prototype.join.call(arguments, '*')
+        console.log('目前缓存: ', cache)
+        if(!cache[cacheKey]) {
+          const result = multiply(...arguments)
+          cache[cacheKey] = result
+          return result
+        }
+        console.log(cacheKey + ' 有缓存结果: ', cache[cacheKey])
+        return cache[cacheKey]
+      }
+    })()
+
+    console.log('\n%cstart---代理模式', 'color: blue;')
+    cacheProxyMultiply(10, 15, 75)
+    cacheProxyMultiply(23, 35, 88)
+    cacheProxyMultiply(23, 35, 88)
+    console.log('%cend---代理模式', 'color: red;') 
+  })()
+</script>
+
   <script>
     // 观察者模式
     (function() {
