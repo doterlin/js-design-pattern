@@ -1,0 +1,239 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设计模式实现</title>
+</head>
+<body>
+  设计模式
+
+  <script>
+    // 简单工厂模式
+    (function() {
+      function Factory(career) {
+        function User(career, work) {
+          this.career = career;
+          this.work = work;
+        }
+  
+        let work;
+        switch (career) {
+          case '老师':
+            work = '教书';
+            break;
+          case '学生':
+            work = '学习';
+            break;
+        }
+        return new User(career, work);
+      }
+  
+      console.log('%cstart---简单工厂模式', 'color: blue;')
+      const teacher = Factory('老师');
+      const student = Factory('学生');
+      console.log(teacher.career, teacher.work);
+      console.log(student.career, student.work);
+      console.log('%cend---简单工厂模式', 'color: red;')
+    })()
+  </script>
+
+  <script>
+    // 工厂方法模式
+    (function() {
+      function Factory(career) {
+        if(this instanceof Factory) {
+          return new this[career]
+        }
+        return new Factory(career)
+      }
+      Factory.prototype = {
+        teacher: function(carrer) {
+          this.carrer = carrer
+          this.carrerName = '老师'
+          this.work = '教书'
+        },
+        student: function(carrer) {
+          this.carrer = carrer
+          this.carrerName = '学生'
+          this.work = '学习'
+        }
+      }
+  
+      console.log('\n%cstart---工厂方法模式', 'color: blue;')
+      const teacher = new Factory('teacher');
+      const student = new Factory('student');
+      console.log(teacher.carrerName, teacher.work);
+      console.log(student.carrerName, student.work);
+      console.log('%cend---工厂方法模式', 'color: red;') 
+    })()
+
+  </script>
+
+  <script>
+    // 单例模式
+    (function() {
+      function Singleton (name) {
+        this.name = name
+        this.instance = null
+      }
+
+      Singleton.prototype.getName = function () {
+        return this.name
+      }
+
+      Singleton.getInstance = function (name) {
+        if(!this.instance) {
+          const s = new Singleton(name)
+          this.instance = s
+          return s 
+        }
+        return this.instance
+      }
+
+      console.log('\n%cstart---单例模式', 'color: blue;')
+      const a = Singleton.getInstance('aaa');
+      const b = Singleton.getInstance('bbb');
+      console.log(a.getName(), b.getName());
+      console.log(a === b);
+      console.log('%cend---单例模式', 'color: red;') 
+    })()
+  </script>
+
+  <script>
+    // 观察者模式
+    (function() {
+      class Subject {
+        constructor () {
+          this.observerList = []
+        }
+
+        addObserver(ob) {
+          this.observerList.push(ob)
+          return this
+        }
+
+        removeObserver(ob) {
+          this.observerList = this.observerList.filter(item => ob.name !== item.name )
+          return this
+        }
+
+        notify(message) {
+          this.observerList.forEach(function(ob) {
+            ob.getNotify(ob.name + '观察到： ' + message)
+          })
+        }
+      }
+
+      class Observer {
+        constructor (name) {
+          this.name = name
+        }
+        getNotify(msg) {
+          console.log('get message :', msg)
+        }
+      }
+
+      console.log('\n%cstart---观察者模式', 'color: blue;')
+      const subject = new Subject()
+      const obA = new Observer('观察者A')
+      const obB = new Observer('观察者B')
+      subject.addObserver(obA).addObserver(obB).notify('第一次发布！')
+      subject.removeObserver(obA).notify('第二次发布！')
+      console.log('%cend---观察者模式', 'color: red;') 
+    })()
+  </script>
+
+  <script>
+    // 订阅发布模式
+    (function() {
+
+      // 订阅中心，作为第三方
+      class SubscriptionCenter {
+        constructor() {
+          this.publisherList = []
+          this.subscriberList = []
+        }
+
+        addPublisher(publisher) {
+          this.publisherList.push(publisher)
+        }
+
+        addSubscriber(subscriber) {
+          this.subscriberList.push(subscriber)
+        }
+
+        notify(topicType, content, pulisherName) {
+          // 找出该主题的订阅者和发布内容
+          const targetSubscriber = this.subscriberList.filter(item => item.topics.includes(topicType))
+          targetSubscriber.forEach(item => item.getTopic(topicType, content, pulisherName))
+        }
+      }
+
+      // 发布者
+      class Publisher {
+        constructor(name, subscriptionCenter) {
+          this.name = name
+          this.subscriptionCenter = subscriptionCenter
+          this.subscriptionCenter.addPublisher(this)
+        }
+
+        publish(topic, content) {
+          this.subscriptionCenter.notify(topic, content, this.name)
+        }
+      }
+
+      // 订阅者
+      class Subscriber {
+        constructor(name, subscriptionCenter) {
+          this.name = name
+          this.subscriptionCenter = subscriptionCenter
+          this.topics = [] //订阅主题
+          this.subscriptionCenter.addSubscriber(this)
+        }
+
+        // 订阅主题
+        subscribe(topics) {
+          this.topics = this.topics.concat(topics)
+        }
+
+        // 收到订阅
+        getTopic(topic, content, pulisherName) {
+          console.log(`订阅者‘${this.name}’ 收到来自 '${pulisherName}' 的订阅主题'${topic}'，订阅内容'${content}'`)
+        }
+      }
+
+      console.log('\n%cstart---订阅发布模式', 'color: blue;')
+      const TYPE_A = '小说'
+      const TYPE_B = '电影'
+      const TYPE_C = '动漫'
+
+      const subscriptionCenter = new SubscriptionCenter()
+
+      const publisherA = new Publisher('腾讯', subscriptionCenter)
+      const publisherB = new Publisher('网易', subscriptionCenter)
+
+
+      const subscriberA = new Subscriber('赵四', subscriptionCenter)
+      const subscriberB = new Subscriber('张三', subscriptionCenter)
+
+      // 订阅者订阅
+      subscriberA.subscribe([TYPE_A, TYPE_B])
+      subscriberB.subscribe([TYPE_A, TYPE_C])
+
+      // 发布者发布
+      publisherA.publish(TYPE_A, '腾讯小说A')
+      publisherB.publish(TYPE_A, '网易小说A')
+      
+      publisherB.publish(TYPE_A, '网易小说B')
+      publisherB.publish(TYPE_C, '网易动漫B')
+      publisherA.publish(TYPE_B, '腾讯电影A')
+      
+      publisherB.publish(TYPE_C, '网易动漫C')
+      publisherA.publish(TYPE_B, '腾讯电影B')
+
+      console.log('%cend---订阅发布模式', 'color: red ;') 
+    })()
+  </script>
+
+</body>
+</html>
